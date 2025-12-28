@@ -52,23 +52,20 @@ comments: true
 classDiagram
     direction LR
 
-    class MessageConsumer {
-        <<interface>>
+    interface MessageConsumer {
         +connect()
         +consumeMessages()
         +close()
     }
 
-    class AbstractConsumer {
-        <<abstract>>
-        #String host
-        #int port
-        #String queue
+    abstract class AbstractConsumer {
+        #host : String
+        #port : int
+        #queue : String
         +connect()
     }
 
-    class BrokerType {
-        <<enumeration>>
+    enum BrokerType {
         REDIS
         RABBITMQ
         NATS
@@ -88,27 +85,26 @@ classDiagram
 
     class ConfigLoader {
         +load()
-        +get(String key)
-        +watch(Runnable onChange)
+        +get(key : String)
+        +watch(onChange : Runnable)
     }
 
-    class Rerenaconsumer {
-        -MessageConsumer consumer
-        -ExecutorService executor
+    class RerenaConsumer {
+        -consumer : MessageConsumer
+        -executor : ExecutorService
         +start()
         -startConsumer()
         -restartConsumer()
     }
 
-    %% 관계 정의: 문법 오류 방지를 위해 공백 처리 주의
     MessageConsumer <|.. AbstractConsumer
     AbstractConsumer <|-- RedisConsumer
     AbstractConsumer <|-- RabbitMQConsumer
     AbstractConsumer <|-- NatsConsumer
 
-    Rerenaconsumer --> MessageConsumer
-    Rerenaconsumer ..> ConfigLoader
-    Rerenaconsumer ..> BrokerType
+    RerenaConsumer --> MessageConsumer
+    RerenaConsumer ..> ConfigLoader
+    RerenaConsumer ..> BrokerType
 </div>
 
 
@@ -121,31 +117,30 @@ classDiagram
 <div class="mermaid">
 sequenceDiagram
     autonumber
-    participant OS as OS / config.properties
-    participant App as Rerenaconsumer
+
+    participant OS as OS (config.properties)
+    participant App as RerenaConsumer
     participant Config as ConfigLoader
     participant Exec as ExecutorService
     participant Consumer as Current Consumer
 
+    App->>Config: load()
+    App->>Config: watch(restartConsumer)
 
-App->>Config: load()
-App->>Config: watch(restartConsumer)
+    App->>App: startConsumer()
+    App->>Config: get("use")
+    App->>Exec: submit(consumeMessages)
 
-App->>App: startConsumer()
-App->>Config: get("use")
-App->>Exec: submit(consumeMessages)
+    OS-->>Config: file change detected
+    Config->>Config: load()
+    Config->>App: restartConsumer()
 
-OS-->>Config: 파일 변경 감지
-Config->>Config: load()
-Config->>App: restartConsumer()
+    App->>Consumer: close()
+    App->>Exec: shutdownNow()
 
-App->>Consumer: close()
-App->>Exec: shutdownNow()
-
-App->>Exec: new Executor
-App->>Config: get("use")
-App->>Exec: submit(new consumeMessages)
-
+    App->>Exec: new Executor
+    App->>Config: get("use")
+    App->>Exec: submit(consumeMessages)
 
 </div>
 
