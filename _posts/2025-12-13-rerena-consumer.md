@@ -50,6 +50,130 @@ comments: true
 
 <img width="1324" height="918" alt="mermaid-classDiagram-img" src="https://github.com/user-attachments/assets/97df9e2c-e5d7-4f9d-aa9f-f34f96d87c62" />
 
+<!-- 
+<div class="mermaid"> 
+classDiagram
+    direction LR
+
+    class MessageConsumer {
+        <<interface>>
+        +connect()
+        +consumeMessages()
+        +close()
+    }
+
+    class AbstractConsumer {
+        <<abstract>>
+        #String host
+        #int port
+        #String queue
+        +connect()
+    }
+
+    class BrokerType {
+        <<enumeration>>
+        REDIS
+        RABBITMQ
+        NATS
+    }
+
+    class RedisConsumer {
+        +consumeMessages()
+    }
+
+    class RabbitMQConsumer {
+        +consumeMessages()
+    }
+
+    class NatsConsumer {
+        +consumeMessages()
+    }
+
+    class ConfigLoader {
+        +load()
+        +get(String key)
+        +watch(Runnable onChange)
+    }
+
+    class Rerenaconsumer {
+        -MessageConsumer consumer
+        -ExecutorService executor
+        +start()
+        -startConsumer()
+        -restartConsumer()
+    }
+
+    %% 관계 정의: 문법 오류 방지를 위해 공백 처리classDiagram
+    direction LR
+
+    class MessageConsumer {
+        <<interface>>
+        +connect()
+        +consumeMessages()
+        +close()
+    }
+
+    class AbstractConsumer {
+        <<abstract>>
+        #String host
+        #int port
+        #String queue
+        +connect()
+    }
+
+    class BrokerType {
+        <<enumeration>>
+        REDIS
+        RABBITMQ
+        NATS
+    }
+
+    class RedisConsumer {
+        +consumeMessages()
+    }
+
+    class RabbitMQConsumer {
+        +consumeMessages()
+    }
+
+    class NatsConsumer {
+        +consumeMessages()
+    }
+
+    class ConfigLoader {
+        +load()
+        +get(String key)
+        +watch(Runnable onChange)
+    }
+
+    class Rerenaconsumer {
+        -MessageConsumer consumer
+        -ExecutorService executor
+        +start()
+        -startConsumer()
+        -restartConsumer()
+    }
+
+    %% 관계 정의: 문법 오류 방지를 위해 공백 처리 주의
+    MessageConsumer <|.. AbstractConsumer
+    AbstractConsumer <|-- RedisConsumer
+    AbstractConsumer <|-- RabbitMQConsumer
+    AbstractConsumer <|-- NatsConsumer
+
+    Rerenaconsumer --> MessageConsumer
+    Rerenaconsumer ..> ConfigLoader
+    Rerenaconsumer ..> BrokerType
+    MessageConsumer <|.. AbstractConsumer
+    AbstractConsumer <|-- RedisConsumer
+    AbstractConsumer <|-- RabbitMQConsumer
+    AbstractConsumer <|-- NatsConsumer
+
+    Rerenaconsumer --> MessageConsumer
+    Rerenaconsumer ..> ConfigLoader
+    Rerenaconsumer ..> BrokerType
+</div> 
+-->
+
 ## 3. 동적 동작 분석: 시퀀스 다이어그램
 
 아래는 설정 파일 변경 시 **Consumer가 안전하게 교체되는 전체 흐름**입니다.
@@ -57,6 +181,34 @@ comments: true
 ### 3.1 핫 리로딩 시퀀스
 
 <img width="1015" height="929" alt="mermaid-reloadingSequence-img" src="https://github.com/user-attachments/assets/d19ac297-c0f0-43fa-8012-30bd094aeaae" />
+
+<!-- 
+<div class="mermaid"> 
+sequenceDiagram
+    autonumber
+    participant OS as OS / config.properties
+    participant App as Rerenaconsumer
+    participant Config as ConfigLoader
+    participant Exec as ExecutorService
+    participant Consumer as Current Consumer
+
+
+App->>Config: load()
+App->>Config: watch(restartConsumer)
+
+App->>App: startConsumer()
+App->>Config: get("use")
+App->>Exec: submit(consumeMessages)
+
+OS-->>Config: 파일 변경 감지
+Config->>Config: load()
+Config->>App: restartConsumer()
+
+App->>Consumer: close()
+App->>Exec: shutdownNow()
+
+</div> -->
+
 
 ## 4. 사용한 오픈소스 및 라이브러리 분석
 
