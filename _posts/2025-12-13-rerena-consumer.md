@@ -127,7 +127,7 @@ sequenceDiagram
     participant Exec as ExecutorService
     participant Consumer as Current Consumer
 
-```
+
 App->>Config: load()
 App->>Config: watch(restartConsumer)
 
@@ -145,11 +145,11 @@ App->>Exec: shutdownNow()
 App->>Exec: new Executor
 App->>Config: get("use")
 App->>Exec: submit(new consumeMessages)
-```
+
 
 </div>
 
----
+
 
 ## 4. 사용한 오픈소스 및 라이브러리 분석
 
