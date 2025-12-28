@@ -50,28 +50,25 @@ comments: true
 
 <img width="1324" height="918" alt="mermaid-classDiagram-img" src="https://github.com/user-attachments/assets/97df9e2c-e5d7-4f9d-aa9f-f34f96d87c62" />
 
-<!-- 
+{% comment %}
 <div class="mermaid"> 
 classDiagram
     direction LR
 
-    class MessageConsumer {
-        <<interface>>
+    interface MessageConsumer {
         +connect()
         +consumeMessages()
         +close()
     }
 
-    class AbstractConsumer {
-        <<abstract>>
-        #String host
-        #int port
-        #String queue
+    abstract class AbstractConsumer {
+        #host : String
+        #port : int
+        #queue : String
         +connect()
     }
 
-    class BrokerType {
-        <<enumeration>>
+    enum BrokerType {
         REDIS
         RABBITMQ
         NATS
@@ -91,88 +88,28 @@ classDiagram
 
     class ConfigLoader {
         +load()
-        +get(String key)
-        +watch(Runnable onChange)
+        +get(key : String)
+        +watch(onChange : Runnable)
     }
 
-    class Rerenaconsumer {
-        -MessageConsumer consumer
-        -ExecutorService executor
+    class RerenaConsumer {
+        -consumer : MessageConsumer
+        -executor : ExecutorService
         +start()
         -startConsumer()
         -restartConsumer()
     }
 
-    %% 관계 정의: 문법 오류 방지를 위해 공백 처리classDiagram
-    direction LR
-
-    class MessageConsumer {
-        <<interface>>
-        +connect()
-        +consumeMessages()
-        +close()
-    }
-
-    class AbstractConsumer {
-        <<abstract>>
-        #String host
-        #int port
-        #String queue
-        +connect()
-    }
-
-    class BrokerType {
-        <<enumeration>>
-        REDIS
-        RABBITMQ
-        NATS
-    }
-
-    class RedisConsumer {
-        +consumeMessages()
-    }
-
-    class RabbitMQConsumer {
-        +consumeMessages()
-    }
-
-    class NatsConsumer {
-        +consumeMessages()
-    }
-
-    class ConfigLoader {
-        +load()
-        +get(String key)
-        +watch(Runnable onChange)
-    }
-
-    class Rerenaconsumer {
-        -MessageConsumer consumer
-        -ExecutorService executor
-        +start()
-        -startConsumer()
-        -restartConsumer()
-    }
-
-    %% 관계 정의: 문법 오류 방지를 위해 공백 처리 주의
     MessageConsumer <|.. AbstractConsumer
     AbstractConsumer <|-- RedisConsumer
     AbstractConsumer <|-- RabbitMQConsumer
     AbstractConsumer <|-- NatsConsumer
 
-    Rerenaconsumer --> MessageConsumer
-    Rerenaconsumer ..> ConfigLoader
-    Rerenaconsumer ..> BrokerType
-    MessageConsumer <|.. AbstractConsumer
-    AbstractConsumer <|-- RedisConsumer
-    AbstractConsumer <|-- RabbitMQConsumer
-    AbstractConsumer <|-- NatsConsumer
-
-    Rerenaconsumer --> MessageConsumer
-    Rerenaconsumer ..> ConfigLoader
-    Rerenaconsumer ..> BrokerType
+    RerenaConsumer --> MessageConsumer
+    RerenaConsumer ..> ConfigLoader
+    RerenaConsumer ..> BrokerType
 </div> 
--->
+{% endcomment %}
 
 ## 3. 동적 동작 분석: 시퀀스 다이어그램
 
@@ -186,26 +123,30 @@ classDiagram
 <div class="mermaid"> 
 sequenceDiagram
     autonumber
-    participant OS as OS / config.properties
-    participant App as Rerenaconsumer
+
+    participant OS as OS (config.properties)
+    participant App as RerenaConsumer
     participant Config as ConfigLoader
     participant Exec as ExecutorService
     participant Consumer as Current Consumer
 
+    App->>Config: load()
+    App->>Config: watch(restartConsumer)
 
-App->>Config: load()
-App->>Config: watch(restartConsumer)
+    App->>App: startConsumer()
+    App->>Config: get("use")
+    App->>Exec: submit(consumeMessages)
 
-App->>App: startConsumer()
-App->>Config: get("use")
-App->>Exec: submit(consumeMessages)
+    OS-->>Config: file change detected
+    Config->>Config: load()
+    Config->>App: restartConsumer()
 
-OS-->>Config: 파일 변경 감지
-Config->>Config: load()
-Config->>App: restartConsumer()
+    App->>Consumer: close()
+    App->>Exec: shutdownNow()
 
-App->>Consumer: close()
-App->>Exec: shutdownNow()
+    App->>Exec: new Executor
+    App->>Config: get("use")
+    App->>Exec: submit(consumeMessages)
 
 </div> -->
 
