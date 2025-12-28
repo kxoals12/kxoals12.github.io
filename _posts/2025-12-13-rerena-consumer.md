@@ -48,65 +48,7 @@ comments: true
 
 ### 2.1 클래스 다이어그램
 
-<div class="mermaid">
-classDiagram
-    direction LR
-
-    interface MessageConsumer {
-        +connect()
-        +consumeMessages()
-        +close()
-    }
-
-    abstract class AbstractConsumer {
-        #host : String
-        #port : int
-        #queue : String
-        +connect()
-    }
-
-    enum BrokerType {
-        REDIS
-        RABBITMQ
-        NATS
-    }
-
-    class RedisConsumer {
-        +consumeMessages()
-    }
-
-    class RabbitMQConsumer {
-        +consumeMessages()
-    }
-
-    class NatsConsumer {
-        +consumeMessages()
-    }
-
-    class ConfigLoader {
-        +load()
-        +get(key : String)
-        +watch(onChange : Runnable)
-    }
-
-    class RerenaConsumer {
-        -consumer : MessageConsumer
-        -executor : ExecutorService
-        +start()
-        -startConsumer()
-        -restartConsumer()
-    }
-
-    MessageConsumer <|.. AbstractConsumer
-    AbstractConsumer <|-- RedisConsumer
-    AbstractConsumer <|-- RabbitMQConsumer
-    AbstractConsumer <|-- NatsConsumer
-
-    RerenaConsumer --> MessageConsumer
-    RerenaConsumer ..> ConfigLoader
-    RerenaConsumer ..> BrokerType
-</div>
-
+<img width="1324" height="918" alt="mermaid-classDiagram-img" src="https://github.com/user-attachments/assets/97df9e2c-e5d7-4f9d-aa9f-f34f96d87c62" />
 
 ## 3. 동적 동작 분석: 시퀀스 다이어그램
 
@@ -114,37 +56,7 @@ classDiagram
 
 ### 3.1 핫 리로딩 시퀀스
 
-<div class="mermaid">
-sequenceDiagram
-    autonumber
-
-    participant OS as OS (config.properties)
-    participant App as RerenaConsumer
-    participant Config as ConfigLoader
-    participant Exec as ExecutorService
-    participant Consumer as Current Consumer
-
-    App->>Config: load()
-    App->>Config: watch(restartConsumer)
-
-    App->>App: startConsumer()
-    App->>Config: get("use")
-    App->>Exec: submit(consumeMessages)
-
-    OS-->>Config: file change detected
-    Config->>Config: load()
-    Config->>App: restartConsumer()
-
-    App->>Consumer: close()
-    App->>Exec: shutdownNow()
-
-    App->>Exec: new Executor
-    App->>Config: get("use")
-    App->>Exec: submit(consumeMessages)
-
-</div>
-
-
+<img width="1015" height="929" alt="mermaid-reloadingSequence-img" src="https://github.com/user-attachments/assets/d19ac297-c0f0-43fa-8012-30bd094aeaae" />
 
 ## 4. 사용한 오픈소스 및 라이브러리 분석
 
